@@ -27,16 +27,42 @@ const App: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [removeBg, setRemoveBg] = useState<boolean>(true);
   
-  // Dynamic Presets State
-  const [presets, setPresets] = useState<ScenarioPreset[]>(DEFAULT_PRESETS);
+  // Dynamic Presets State - Initialize from localStorage or default
+  const [presets, setPresets] = useState<ScenarioPreset[]>(() => {
+    const savedPresets = localStorage.getItem('amzgen_presets');
+    if (savedPresets) {
+      try {
+        const parsedPresets = JSON.parse(savedPresets);
+        if (Array.isArray(parsedPresets) && parsedPresets.length > 0) {
+          return parsedPresets;
+        }
+      } catch (error) {
+        console.error('Failed to load presets from localStorage:', error);
+      }
+    }
+    return DEFAULT_PRESETS;
+  });
   // Temporary AI recommendations that are shown in the UI but not persisted to the main library
   const [aiRecommendations, setAiRecommendations] = useState<ScenarioPreset[]>([]);
   
   // Combined list for display (system presets + AI recommendations)
   const displayPresets = [...presets, ...aiRecommendations];
 
-  // Changed to array for multi-select
-  const [selectedPresetIds, setSelectedPresetIds] = useState<string[]>([DEFAULT_PRESETS[0].id]);
+  // Changed to array for multi-select - Initialize based on loaded presets
+  const [selectedPresetIds, setSelectedPresetIds] = useState<string[]>(() => {
+    const savedPresets = localStorage.getItem('amzgen_presets');
+    if (savedPresets) {
+      try {
+        const parsedPresets = JSON.parse(savedPresets);
+        if (Array.isArray(parsedPresets) && parsedPresets.length > 0 && parsedPresets[0]?.id) {
+          return [parsedPresets[0].id];
+        }
+      } catch (error) {
+        // Fall through to default
+      }
+    }
+    return [DEFAULT_PRESETS[0].id];
+  });
 
   const [customContext, setCustomContext] = useState<string>('');
   
@@ -59,12 +85,51 @@ const App: React.FC = () => {
   const [editingImage, setEditingImage] = useState<GeneratedImage | null>(null);
   const [isEditorProcessing, setIsEditorProcessing] = useState(false);
 
-  // Advanced Prompt Settings
-  const [promptSettings, setPromptSettings] = useState<GlobalPromptSettings>({
-    expandPromptSystem: DEFAULT_SYSTEM_INSTRUCTION,
-    expandPromptUserTemplate: DEFAULT_USER_TEMPLATE,
-    generationPromptTemplate: DEFAULT_GENERATION_TEMPLATE, // Keep as fallback default
+  // Advanced Prompt Settings - Initialize from localStorage or default
+  const [promptSettings, setPromptSettings] = useState<GlobalPromptSettings>(() => {
+    const savedPromptSettings = localStorage.getItem('amzgen_prompt_settings');
+    if (savedPromptSettings) {
+      try {
+        const parsedSettings = JSON.parse(savedPromptSettings);
+        return {
+          expandPromptSystem: DEFAULT_SYSTEM_INSTRUCTION,
+          expandPromptUserTemplate: DEFAULT_USER_TEMPLATE,
+          generationPromptTemplate: DEFAULT_GENERATION_TEMPLATE,
+          ...parsedSettings
+        };
+      } catch (error) {
+        console.error('Failed to load prompt settings from localStorage:', error);
+      }
+    }
+    return {
+      expandPromptSystem: DEFAULT_SYSTEM_INSTRUCTION,
+      expandPromptUserTemplate: DEFAULT_USER_TEMPLATE,
+      generationPromptTemplate: DEFAULT_GENERATION_TEMPLATE, // Keep as fallback default
+    };
   });
+
+  // Load API Key from localStorage on mount
+  useEffect(() => {
+    const savedKey = localStorage.getItem('openrouter_api_key');
+    if (savedKey) {
+      setCustomApiKey(savedKey);
+      setIsApiKeySaved(true);
+    }
+  }, []);
+
+
+  // Save presets to localStorage whenever they change (skip initial render)
+  useEffect(() => {
+    // Save presets to localStorage
+    if (presets.length > 0) {
+      localStorage.setItem('amzgen_presets', JSON.stringify(presets));
+    }
+  }, [presets]);
+
+  // Save prompt settings to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('amzgen_prompt_settings', JSON.stringify(promptSettings));
+  }, [promptSettings]);
 
   // Sync settings with LLM Service
   useEffect(() => {
@@ -75,15 +140,6 @@ const App: React.FC = () => {
     
     LLMServiceFactory.registerConfig(config);
   }, [customApiKey, promptSettings]);
-
-  useEffect(() => {
-    const savedKey = localStorage.getItem('openrouter_api_key');
-    if (savedKey) {
-      setCustomApiKey(savedKey);
-      setIsApiKeySaved(true);
-      // The other effect will pick this up and register it
-    }
-  }, []);
 
   // File Input Ref
   const fileInputRef = useRef<HTMLInputElement>(null);
