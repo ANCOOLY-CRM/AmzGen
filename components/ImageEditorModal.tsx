@@ -164,8 +164,8 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({
                 <Square className="w-5 h-5" />
              </div>
              <div>
-               <h3 className="font-bold text-gray-800">Magic Editor</h3>
-               <p className="text-xs text-gray-500">Drag to select area & describe changes</p>
+               <h3 className="font-bold text-gray-800">魔法编辑器</h3>
+               <p className="text-xs text-gray-500">拖拽选择区域并描述更改</p>
              </div>
           </div>
           <button 
@@ -188,7 +188,7 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({
                     <div className="relative shadow-lg" style={{ width: 'fit-content' }}>
                         <img 
                             src={imageUrl} 
-                            alt="Target" 
+                            alt="目标" 
                             className="max-w-full max-h-[60vh] object-contain block pointer-events-none"
                             draggable={false}
                         />
@@ -214,17 +214,17 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({
                 
                 {/* Selection Tools */}
                 <div>
-                    <label className="text-sm font-medium text-gray-700 mb-3 block">Selection</label>
+                    <label className="text-sm font-medium text-gray-700 mb-3 block">选择</label>
                     <div className="flex items-center gap-3 mb-4">
                          <div className="flex-1 bg-gray-100 rounded-lg p-1 flex">
                              <button className="flex-1 py-1.5 px-2 text-xs font-medium bg-white shadow rounded-md text-gray-800 flex items-center justify-center gap-1">
-                                 <Square className="w-3.5 h-3.5" /> Rectangular Marquee
+                                 <Square className="w-3.5 h-3.5" /> 矩形选框
                              </button>
                          </div>
                          <button 
                             onClick={clearSelection}
                             className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Clear Selection"
+                            title="清除选择"
                          >
                             <RotateCcw className="w-4 h-4" />
                          </button>
@@ -233,23 +233,23 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({
                     {selection ? (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-xs text-green-700 flex items-center gap-2">
                             <Check className="w-4 h-4" />
-                            Area selected ({Math.round(selection.w)}x{Math.round(selection.h)})
+                            已选择区域 ({Math.round(selection.w)}x{Math.round(selection.h)})
                         </div>
                     ) : (
                         <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-500 flex items-center gap-2">
                             <MousePointer2 className="w-4 h-4" />
-                            Please select an area to edit
+                            请选择一个区域进行编辑
                         </div>
                     )}
                 </div>
 
                 {/* Prompt Input */}
                 <div className="flex-1 flex flex-col">
-                    <label className="text-sm font-medium text-gray-700 mb-2">Edit Instruction</label>
+                    <label className="text-sm font-medium text-gray-700 mb-2">编辑指令</label>
                     <textarea
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
-                        placeholder="Describe changes for the selected area..."
+                        placeholder="描述选中区域的更改..."
                         className="w-full flex-1 border border-gray-300 rounded-xl p-3 text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none min-h-[120px]"
                     />
                 </div>
@@ -268,12 +268,12 @@ export const ImageEditorModal: React.FC<ImageEditorModalProps> = ({
                         {isProcessing ? (
                             <>
                                 <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                                Processing...
+                                处理中...
                             </>
                         ) : (
                             <>
                                 <Sparkles className="w-4 h-4" />
-                                Generate Changes
+                                生成更改
                             </>
                         )}
                     </button>

@@ -36,17 +36,17 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ selectedModel, onS
   const getModelDescription = (provider: LLMProvider) => {
     switch (provider) {
       case LLMProvider.GEMINI_3_PRO_IMAGE_PREVIEW:
-        return "Nano Banana Pro (Image Gen)";
+        return "Nano Banana Pro (图像生成)";
       case LLMProvider.GEMINI_3_PRO_PREVIEW:
-        return "Gemini 3 Pro Preview (Text)";
+        return "Gemini 3 Pro 预览版 (文本)";
       default:
-        return "Standard Model";
+        return "标准模型";
     }
   };
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <label className="block text-sm font-medium text-gray-700 mb-1">AI Model</label>
+      <label className="block text-sm font-medium text-gray-700 mb-1">AI 模型</label>
       
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -98,7 +98,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ selectedModel, onS
             })}
           </div>
           <div className="bg-gray-50 p-2 text-[10px] text-gray-400 text-center border-t border-gray-100">
-            Powered by OpenRouter
+            由 OpenRouter 提供支持
           </div>
         </div>
       )}

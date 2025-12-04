@@ -21,14 +21,14 @@ export const ResultCard: React.FC<ResultCardProps> = ({ image, onDownload, onZoo
           <button 
             onClick={() => onDownload(image.url)}
             className="p-2 bg-white text-gray-900 rounded-full hover:bg-primary hover:text-white transition-colors"
-            title="Download"
+            title="下载"
           >
             <Download className="w-5 h-5" />
           </button>
           <button 
             onClick={() => onZoom ? onZoom(image) : window.open(image.url, '_blank')}
              className="p-2 bg-white text-gray-900 rounded-full hover:bg-primary hover:text-white transition-colors"
-             title="Edit / Zoom"
+             title="编辑 / 缩放"
           >
              <ZoomIn className="w-5 h-5" />
           </button>

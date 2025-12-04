@@ -12,9 +12,9 @@ import { Upload, Sparkles, Wand2, Loader2, Image as ImageIcon, AlertCircle, Laye
 const DEFAULT_PRESETS: ScenarioPreset[] = [
   { 
     id: 'minimalist', 
-    name: 'Minimalist Studio', 
-    description: 'A clean, high-end studio setting with soft, diffused lighting and a neutral beige or white background. Minimal props, focus entirely on the product elegance.',
-    quality: 'High quality, 8k, commercial photography, soft lighting'
+    name: '极简工作室', 
+    description: '一个干净、高端的摄影棚环境，具有柔和、漫射的灯光和中性米色或白色背景。最少的道具，完全专注于产品的优雅。',
+    quality: '高质量，8k，商业摄影，柔和灯光'
   },
 ];
 
@@ -103,14 +103,14 @@ const App: React.FC = () => {
     if (!previewUrl) return;
 
     try {
-      setProcessingState({ step: 'ANALYZING_IMAGE', message: 'AI analyzing image and brainstorming scenarios...' });
+      setProcessingState({ step: 'ANALYZING_IMAGE', message: 'AI 正在分析图像并构思场景...' });
       
       // Use Gemini Pro for vision tasks
       const recommendations = await recommendScenarios(previewUrl, LLMProvider.GEMINI_3_PRO_PREVIEW);
       
       const newPresets: ScenarioPreset[] = recommendations.map((rec, index) => ({
         id: `rec-${Date.now()}-${index}`,
-        name: `AI Suggestion ${index + 1}`,
+        name: `AI 建议 ${index + 1}`,
         description: rec,
         quality: 'High quality, photorealistic, 8k',
         isRecommended: true
@@ -123,7 +123,7 @@ const App: React.FC = () => {
       setProcessingState({ step: 'IDLE', message: '' });
     } catch (error) {
       console.error("Recommendation error:", error);
-      setProcessingState({ step: 'ERROR', message: 'Failed to generate recommendations.' });
+      setProcessingState({ step: 'ERROR', message: '生成建议失败。' });
     }
   };
 
@@ -144,7 +144,7 @@ const App: React.FC = () => {
       // 1. Prepare Image (Remove BG if requested)
       let imageToProcess = previewUrl;
       if (removeBg) {
-        setProcessingState({ step: 'EXPANDING_PROMPT', message: 'Removing background for better integration...' });
+        setProcessingState({ step: 'EXPANDING_PROMPT', message: '正在移除背景以便更好地集成...' });
         imageToProcess = await removeWhiteBackground(selectedFile);
       }
 
@@ -162,7 +162,7 @@ const App: React.FC = () => {
         // 2. Expand Prompt
         setProcessingState({ 
             step: 'EXPANDING_PROMPT', 
-            message: `[${completed}/${total}] Designing "${currentPresetName}" scene...` 
+            message: `[${completed}/${total}] 正在设计 "${currentPresetName}" 场景...` 
         });
         
         const basePrompt = selectedPreset.description;
@@ -173,7 +173,7 @@ const App: React.FC = () => {
         // 3. Generate Image
         setProcessingState({ 
             step: 'GENERATING_IMAGE', 
-            message: `[${completed}/${total}] Rendering "${currentPresetName}"...` 
+            message: `[${completed}/${total}] 正在渲染 "${currentPresetName}"...` 
         });
         // Always use Nano Banana Pro for image generation as requested
         const generatedImageUrl = await generateProductScene(
@@ -197,7 +197,7 @@ const App: React.FC = () => {
         setGeneratedImages(prev => [newImage, ...prev]);
       }
 
-      setProcessingState({ step: 'COMPLETED', message: 'All scenarios generated successfully!' });
+      setProcessingState({ step: 'COMPLETED', message: '所有场景生成成功！' });
 
       setTimeout(() => {
         setProcessingState({ step: 'IDLE', message: '' });
@@ -205,7 +205,7 @@ const App: React.FC = () => {
 
     } catch (error) {
       console.error(error);
-      setProcessingState({ step: 'ERROR', message: 'Something went wrong. Please check your API key and try again.' });
+      setProcessingState({ step: 'ERROR', message: '出错了。请检查您的 API 密钥并重试。' });
     }
   };
 
@@ -304,8 +304,8 @@ const App: React.FC = () => {
         const newImage: GeneratedImage = {
             id: Date.now().toString() + Math.random().toString().slice(2, 8),
             url: editedImageUrl,
-            prompt: `[Edit] ${prompt}`,
-            vibe: `${editingImage.vibe} (Edited)`,
+            prompt: `[编辑] ${prompt}`,
+            vibe: `${editingImage.vibe}（已编辑）`,
             timestamp: Date.now()
         };
         
@@ -314,7 +314,7 @@ const App: React.FC = () => {
         
     } catch (error) {
         console.error("Editor error:", error);
-        alert(`Failed to process edit request: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        alert(`处理编辑请求失败：${error instanceof Error ? error.message : '未知错误'}`);
     } finally {
         setIsEditorProcessing(false);
     }
@@ -336,7 +336,7 @@ const App: React.FC = () => {
                 <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                   <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                     <Upload className="w-4 h-4 text-primary" />
-                    Step 1: Upload Product
+                    步骤 1：上传产品
                   </h3>
                   
                   <div 
@@ -345,14 +345,14 @@ const App: React.FC = () => {
                   >
                     {previewUrl ? (
                       <div className="relative">
-                        <img src={previewUrl} alt="Preview" className="max-h-48 mx-auto object-contain" />
-                        <button className="absolute top-0 right-0 bg-white/80 p-1 rounded-full text-xs hover:bg-white text-gray-600">Change</button>
+                        <img src={previewUrl} alt="预览" className="max-h-48 mx-auto object-contain" />
+                        <button className="absolute top-0 right-0 bg-white/80 p-1 rounded-full text-xs hover:bg-white text-gray-600">更换</button>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center gap-2 py-4">
                         <ImageIcon className="w-10 h-10 text-gray-300" />
-                        <p className="text-sm text-gray-500">Click to upload or drag & drop</p>
-                        <span className="text-xs text-gray-400">Supports PNG, JPG (White BG)</span>
+                        <p className="text-sm text-gray-500">点击上传或拖放</p>
+                        <span className="text-xs text-gray-400">支持 PNG、JPG（白色背景）</span>
                       </div>
                     )}
                     <input 
@@ -376,7 +376,7 @@ const App: React.FC = () => {
                            ) : (
                              <BrainCircuit className="w-4 h-4" />
                            )}
-                           AI Scene Recommend
+                           AI 场景推荐
                         </button>
 
                         <div className="flex items-center gap-2">
@@ -388,7 +388,7 @@ const App: React.FC = () => {
                             className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                           />
                           <label htmlFor="removeBg" className="text-sm text-gray-600 select-none cursor-pointer">
-                            Auto-remove white background
+                            自动移除白色背景
                           </label>
                         </div>
                     </div>
@@ -399,15 +399,15 @@ const App: React.FC = () => {
                 <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                    <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                     <Wand2 className="w-4 h-4 text-primary" />
-                    Step 2: Configuration
+                    步骤 2：配置
                   </h3>
 
                   <div className="space-y-4">
                     {/* Vibe Selection - Button Grid */}
                     <div>
                        <div className="flex justify-between items-center mb-2">
-                           <label className="text-sm font-medium text-gray-700">Select Scenarios (Multi-select)</label>
-                           <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{selectedPresetIds.length} selected</span>
+                           <label className="text-sm font-medium text-gray-700">选择场景（多选）</label>
+                           <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{selectedPresetIds.length} 已选择</span>
                        </div>
                        
                        <div className="grid grid-cols-2 gap-2 pr-1">
@@ -447,17 +447,17 @@ const App: React.FC = () => {
                           })}
                        </div>
                        <p className="text-[10px] text-gray-400 mt-2 text-center">
-                          Select multiple to generate batch variations.
+                          选择多个以生成批量变体。
                        </p>
                     </div>
 
                     {/* Custom Context */}
                     <div>
-                       <label className="block text-sm font-medium text-gray-700 mb-1">Additional Context (Optional)</label>
+                       <label className="block text-sm font-medium text-gray-700 mb-1">附加上下文（可选）</label>
                        <textarea 
                           value={customContext}
                           onChange={(e) => setCustomContext(e.target.value)}
-                          placeholder="E.g., Place a cup of coffee next to it."
+                          placeholder="例如，在旁边放一杯咖啡。"
                           className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none min-h-[60px]"
                        />
                     </div>
@@ -478,12 +478,12 @@ const App: React.FC = () => {
                    {processingState.step !== 'IDLE' && processingState.step !== 'COMPLETED' && processingState.step !== 'ERROR' ? (
                      <>
                        <Loader2 className="w-5 h-5 animate-spin" />
-                       Processing...
+                       处理中...
                      </>
                    ) : (
                      <>
                        <Sparkles className="w-5 h-5" />
-                       Generate {selectedPresetIds.length > 0 ? `(${selectedPresetIds.length})` : ''} Scenes
+                       生成 {selectedPresetIds.length > 0 ? `(${selectedPresetIds.length})` : ''} 场景
                      </>
                    )}
                 </button>
@@ -508,8 +508,8 @@ const App: React.FC = () => {
               <div className="lg:col-span-8">
                 <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 h-full min-h-[500px] flex flex-col">
                    <div className="flex justify-between items-center mb-4 shrink-0">
-                     <h3 className="font-semibold text-gray-800">Generated Results</h3>
-                     <span className="text-sm text-gray-500">{generatedImages.length} images</span>
+                     <h3 className="font-semibold text-gray-800">生成的结果</h3>
+                     <span className="text-sm text-gray-500">{generatedImages.length} 张图片</span>
                    </div>
 
                    {generatedImages.length === 0 ? (
@@ -517,8 +517,8 @@ const App: React.FC = () => {
                        <div className="w-32 h-32 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                          <Layers className="w-12 h-12 text-gray-200" />
                        </div>
-                       <p className="text-lg font-medium text-gray-300">No images generated yet</p>
-                       <p className="text-sm text-gray-300">Upload a product and select scenarios to start</p>
+                       <p className="text-lg font-medium text-gray-300">尚未生成图片</p>
+                       <p className="text-sm text-gray-300">上传产品并选择场景以开始</p>
                      </div>
                    ) : (
                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto">
@@ -540,8 +540,8 @@ const App: React.FC = () => {
           /* SETTINGS VIEW */
           <div className="max-w-4xl mx-auto animate-fadeIn">
              <header className="mb-8 border-b border-gray-200 pb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
-                <p className="text-gray-500">Manage your workspace preferences.</p>
+                <h2 className="text-2xl font-bold text-gray-900">设置</h2>
+                <p className="text-gray-500">管理您的工作区首选项。</p>
              </header>
 
              <div className="space-y-6">
@@ -550,12 +550,12 @@ const App: React.FC = () => {
                <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                   <div className="p-6 border-b border-gray-100 bg-gray-50/50">
                     <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                      <Key className="w-5 h-5 text-gray-500" /> API Configuration
+                      <Key className="w-5 h-5 text-gray-500" /> API 配置
                     </h3>
                   </div>
                   <div className="p-6">
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">OpenRouter API Key</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">OpenRouter API 密钥</label>
                       <div className="flex gap-2">
                         <div className="relative flex-1">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -565,7 +565,7 @@ const App: React.FC = () => {
                             type={showApiKey ? "text" : "password"}
                             value={customApiKey}
                             onChange={(e) => setCustomApiKey(e.target.value)}
-                            placeholder="Enter your OpenRouter API Key (starts with sk-or-...)"
+                            placeholder="输入您的 OpenRouter API 密钥（以 sk-or-... 开头）"
                             className="w-full pl-10 pr-10 border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                           />
                           <button
@@ -580,34 +580,34 @@ const App: React.FC = () => {
                           onClick={handleSaveApiKey}
                           className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition-colors"
                         >
-                          Save
+                          保存
                         </button>
                         {isApiKeySaved && (
                           <button
                             onClick={handleClearApiKey}
                             className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                           >
-                            Clear
+                            清除
                           </button>
                         )}
                       </div>
                       <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
                         {isApiKeySaved ? (
                           <span className="text-green-600 flex items-center gap-1">
-                            <Check className="w-3 h-3" /> Using custom API key from local storage
+                            <Check className="w-3 h-3" /> 使用本地存储的自定义 API 密钥
                           </span>
                         ) : (
                           <span className="text-gray-400">
-                            Using default environment key (if configured)
+                            使用默认环境密钥（如果已配置）
                           </span>
                         )}
                       </p>
                     </div>
                     <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-800">
-                      <p className="font-medium mb-1">Privacy Note</p>
+                      <p className="font-medium mb-1">隐私说明</p>
                       <p className="text-blue-600">
-                        Your API key is stored locally in your browser's storage and is never sent to our servers. 
-                        It is sent directly to OpenRouter API when generating content.
+                        您的 API 密钥存储在本地浏览器的存储中，永远不会发送到我们的服务器。
+                        生成内容时，它会直接发送到 OpenRouter API。
                       </p>
                     </div>
                   </div>
@@ -617,15 +617,15 @@ const App: React.FC = () => {
                <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                   <div className="p-6 border-b border-gray-100 bg-gray-50/50">
                     <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                      <Wand2 className="w-5 h-5 text-gray-500" /> Global Prompt Settings
+                      <Wand2 className="w-5 h-5 text-gray-500" /> 全局提示设置
                     </h3>
                   </div>
                   <div className="p-6 space-y-6">
                     
                     {/* System Instruction */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">System Instruction (Prompt Expansion)</label>
-                      <p className="text-xs text-gray-500 mb-2">Defines the persona and rules for the prompt expansion AI.</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">系统指令（提示扩展）</label>
+                      <p className="text-xs text-gray-500 mb-2">定义提示扩展 AI 的角色和规则。</p>
                       <textarea
                         value={promptSettings.expandPromptSystem}
                         onChange={(e) => setPromptSettings(prev => ({ ...prev, expandPromptSystem: e.target.value }))}
@@ -640,7 +640,7 @@ const App: React.FC = () => {
                <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                   <div className="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                     <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                      <Layers className="w-5 h-5 text-gray-500" /> Scenario Library
+                      <Layers className="w-5 h-5 text-gray-500" /> 场景库
                     </h3>
                     {!isAddingPreset && (
                        <button 
@@ -651,38 +651,38 @@ const App: React.FC = () => {
                          }}
                          className="flex items-center gap-1 text-sm bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
                        >
-                         <Plus className="w-4 h-4" /> Add Preset
+                         <Plus className="w-4 h-4" /> 添加预设
                        </button>
                     )}
                   </div>
 
                   <div className="p-6">
                     <p className="text-sm text-gray-500 mb-4">
-                       Define your custom prompt templates here. Each preset can have its own target resolution compliant with Amazon standards.
+                       在此处定义您的自定义提示模板。每个预设都可以有自己的目标分辨率，符合 Amazon 标准。
                     </p>
 
                     {/* ADD NEW PRESET FORM */}
                     {isAddingPreset && (
                        <div className="bg-orange-50 border border-orange-100 rounded-lg p-4 mb-6">
-                          <h4 className="text-sm font-bold text-gray-800 mb-3">New Preset</h4>
+                          <h4 className="text-sm font-bold text-gray-800 mb-3">新预设</h4>
                           <div className="space-y-3">
                              <input 
                                 type="text"
-                                placeholder="Preset Name (e.g., Rustic Outdoor)"
+                                placeholder="预设名称（例如：Rustic Outdoor）"
                                 className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-1 focus:ring-primary outline-none"
                                 value={newPresetName}
                                 onChange={(e) => setNewPresetName(e.target.value)}
                              />
                              <textarea 
-                                placeholder="Description / Prompt Template (e.g., A wooden table in a forest...)"
+                                placeholder="描述 / 提示模板（例如：森林中的木桌...）"
                                 className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-1 focus:ring-primary outline-none min-h-[80px]"
                                 value={newPresetDesc}
                                 onChange={(e) => setNewPresetDesc(e.target.value)}
                              />
 
                              <div className="flex gap-2 justify-end">
-                                <button onClick={() => setIsAddingPreset(false)} className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1">Cancel</button>
-                                <button onClick={saveNewPreset} className="text-sm bg-primary text-white px-4 py-1.5 rounded hover:bg-orange-600">Save Preset</button>
+                                <button onClick={() => setIsAddingPreset(false)} className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1">取消</button>
+                                <button onClick={saveNewPreset} className="text-sm bg-primary text-white px-4 py-1.5 rounded hover:bg-orange-600">保存预设</button>
                              </div>
                           </div>
                        </div>
@@ -708,10 +708,10 @@ const App: React.FC = () => {
 
                                   <div className="flex gap-2 justify-end">
                                       <button onClick={() => setEditingPresetId(null)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 px-3 py-1">
-                                        <X className="w-3 h-3" /> Cancel
+                                        <X className="w-3 h-3" /> 取消
                                       </button>
                                       <button onClick={() => handleSavePreset(preset.id)} className="flex items-center gap-1 text-sm bg-green-600 text-white px-4 py-1.5 rounded hover:bg-green-700">
-                                        <Save className="w-3 h-3" /> Save Changes
+                                        <Save className="w-3 h-3" /> 保存更改
                                       </button>
                                   </div>
                                </div>
@@ -727,14 +727,14 @@ const App: React.FC = () => {
                                      <button 
                                         onClick={() => startEditing(preset)}
                                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                        title="Edit"
+                                        title="编辑"
                                      >
                                         <Edit2 className="w-4 h-4" />
                                      </button>
                                      <button 
                                         onClick={() => deletePreset(preset.id)}
                                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                        title="Delete"
+                                        title="删除"
                                      >
                                         <Trash2 className="w-4 h-4" />
                                      </button>
@@ -750,7 +750,7 @@ const App: React.FC = () => {
                <div className="flex justify-center pt-8">
                   <p className="text-xs text-gray-400 flex items-center gap-1">
                     <Shield className="w-3 h-3" />
-                    AmzGen Version 1.1.0 • Powered by OpenRouter
+                    AmzGen 版本 1.1.0 • 由 OpenRouter 提供支持
                   </p>
                </div>
              </div>

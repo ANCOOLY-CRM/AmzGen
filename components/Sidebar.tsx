@@ -15,7 +15,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
         </div>
         <div>
           <h1 className="font-bold text-lg leading-tight">AmzGen</h1>
-          <span className="text-xs text-gray-400">Seller Tools AI</span>
+          <span className="text-xs text-gray-400">卖家工具 AI</span>
         </div>
       </div>
 
@@ -29,7 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
           }`}
         >
           <Layers className="w-5 h-5" />
-          Scene Generator
+          场景生成器
         </button>
         <button 
           onClick={() => onTabChange('settings')}
@@ -40,11 +40,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
           }`}
         >
           <Settings className="w-5 h-5" />
-          Settings
+          设置
         </button>
         <button className="flex items-center gap-3 w-full p-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
           <HelpCircle className="w-5 h-5" />
-          Documentation
+          文档
         </button>
       </nav>
 
