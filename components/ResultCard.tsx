@@ -5,9 +5,10 @@ import { GeneratedImage } from '../types';
 interface ResultCardProps {
   image: GeneratedImage;
   onDownload: (url: string) => void;
+  onZoom?: (image: GeneratedImage) => void;
 }
 
-export const ResultCard: React.FC<ResultCardProps> = ({ image, onDownload }) => {
+export const ResultCard: React.FC<ResultCardProps> = ({ image, onDownload, onZoom }) => {
   return (
     <div className="group relative bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
       <div className="aspect-square w-full overflow-hidden bg-gray-100 relative">
@@ -25,9 +26,9 @@ export const ResultCard: React.FC<ResultCardProps> = ({ image, onDownload }) => 
             <Download className="w-5 h-5" />
           </button>
           <button 
-            onClick={() => window.open(image.url, '_blank')}
+            onClick={() => onZoom ? onZoom(image) : window.open(image.url, '_blank')}
              className="p-2 bg-white text-gray-900 rounded-full hover:bg-primary hover:text-white transition-colors"
-             title="View Fullscreen"
+             title="Edit / Zoom"
           >
              <ZoomIn className="w-5 h-5" />
           </button>

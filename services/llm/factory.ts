@@ -72,3 +72,16 @@ export async function recommendScenarios(
   const service = LLMServiceFactory.getService(provider);
   return await service.recommendScenarios(imageBase64);
 }
+
+/**
+ * 便捷函数：编辑图像
+ */
+export async function editImage(
+  imageBase64: string,
+  maskBase64: string,
+  prompt: string,
+  provider: LLMProvider
+): Promise<string> {
+  const service = LLMServiceFactory.getService(provider);
+  return await service.editImage(imageBase64, maskBase64, prompt);
+}

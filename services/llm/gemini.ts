@@ -82,7 +82,8 @@ export class GeminiService implements ILLMService {
     }
 
     try {
-      const modelId = this.config.model || 'gemini-2.0-flash';
+      // 文本/多模态任务使用 pro-preview (遵循 OpenRouter 命名习惯，去除 google/ 前缀适配 SDK)
+      const modelId = this.config.model || 'gemini-3-pro-preview';
       
       const systemInstruction = this.config.expandPromptSystem || DEFAULT_SYSTEM_INSTRUCTION;
       const userTemplate = this.config.expandPromptUserTemplate || DEFAULT_USER_TEMPLATE;
@@ -126,7 +127,8 @@ export class GeminiService implements ILLMService {
         fullPrompt += `\nStyle/Quality: ${options.quality}`;
       }
 
-      const modelId = this.config.model || 'gemini-2.0-flash'; // Using flash as placeholder, actual model ID needs to be correct
+      // 生图任务使用 pro-image-preview (遵循 OpenRouter 命名习惯，去除 google/ 前缀适配 SDK)
+      const modelId = this.config.model || 'gemini-3-pro-image-preview';
       const response = await this.client.models.generateContent({
         model: modelId,
         contents: {
@@ -172,7 +174,8 @@ export class GeminiService implements ILLMService {
 
     try {
         const cleanBase64 = imageBase64.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
-        const modelId = 'gemini-2.0-flash'; 
+        // 多模态分析任务使用 pro-preview
+        const modelId = 'gemini-3-pro-preview'; 
         
         const prompt = `Analyze the provided product image. Generate 3 distinct, high-quality commercial photography scene descriptions suitable for Amazon product listings. 
         Focus on lighting, background, and atmosphere that complements this specific product. 
@@ -198,6 +201,62 @@ export class GeminiService implements ILLMService {
     } catch (error) {
         console.error("Gemini recommendScenarios error:", error);
         return [];
+    }
+  }
+
+  async editImage(imageBase64: string, maskBase64: string, prompt: string): Promise<string> {
+    if (!this.isAvailable()) {
+      throw new Error("Gemini API key is not configured. Please set VITE_GEMINI_API_KEY in .env file.");
+    }
+
+    try {
+      const cleanImageBase64 = imageBase64.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
+      const cleanMaskBase64 = maskBase64.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
+      
+      // 编辑/Inpainting 任务使用 pro-image-preview
+      const modelId = 'gemini-3-pro-image-preview';
+
+      const fullPrompt = `Perform an inpainting/edit task on the image using the provided mask.
+      The white area in the mask indicates the region to modify.
+      Instruction: ${prompt}
+      Return only the resulting image.`;
+
+      const response = await this.client.models.generateContent({
+        model: modelId,
+        contents: {
+          parts: [
+            { text: fullPrompt },
+            {
+              inlineData: {
+                mimeType: 'image/png',
+                data: cleanImageBase64,
+              },
+            },
+            {
+              inlineData: {
+                mimeType: 'image/png',
+                data: cleanMaskBase64, // Mask as the second image
+              },
+            }
+          ],
+        },
+      });
+
+      // Extract image from response
+      const candidates = response.candidates;
+      if (candidates && candidates.length > 0) {
+        const parts = candidates[0].content.parts;
+        for (const part of parts) {
+          if (part.inlineData && part.inlineData.data) {
+            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+          }
+        }
+      }
+
+      throw new Error("No image data returned from Gemini API for edit request");
+    } catch (error) {
+      console.error("Gemini editImage error:", error);
+      throw new Error(`Failed to edit image with Gemini: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

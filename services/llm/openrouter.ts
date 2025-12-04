@@ -308,4 +308,108 @@ export class OpenRouterService implements ILLMService {
         return ["A clean studio setting with soft lighting.", "A lifestyle setting with natural sunlight.", "A professional commercial background."]; // Fallback
     }
   }
+
+  async editImage(imageBase64: string, maskBase64: string, prompt: string): Promise<string> {
+    const apiKey = this.getApiKey();
+    // Using the image generation/editing capable model
+    const modelId = "google/gemini-3-pro-image-preview";
+    
+    const cleanImageBase64 = imageBase64.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
+    const cleanMaskBase64 = maskBase64.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
+
+    console.log("🎨 [Edit Image] Sending request to", modelId);
+
+    try {
+      const body: any = {
+        model: modelId,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: `Perform an inpainting/edit task on the image using the provided mask.
+              The white area in the mask indicates the region to modify.
+              Instruction: ${prompt}
+              Return ONLY the resulting image.` },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/png;base64,${cleanImageBase64}`
+                }
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/png;base64,${cleanMaskBase64}`
+                }
+              }
+            ]
+          }
+        ]
+      };
+
+      // Explicitly request image modality if using Gemini Image Preview model
+      if (modelId.includes("gemini-3-pro-image-preview")) {
+        body.modalities = ["image", "text"];
+      }
+
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "HTTP-Referer": window.location.href,
+          "X-Title": "AmzGen",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("OpenRouter Edit Response:", data);
+
+      // Reuse extraction logic
+      let finalContent: string | null = null;
+      if (data.choices && Array.isArray(data.choices)) {
+        for (const choice of data.choices) {
+          if (choice.message?.images && Array.isArray(choice.message.images) && choice.message.images.length > 0) {
+             const firstImg = choice.message.images[0];
+             if (firstImg.image_url?.url) {
+                finalContent = firstImg.image_url.url;
+                break;
+             }
+          }
+          const content = choice.message?.content;
+          if (content) {
+             const urlMatch = content.match(/\!\[.*?\]\((.*?)\)/) || content.match(/(https?:\/\/[^\s)]+)/i);
+             if (urlMatch) {
+                if (urlMatch[1].includes("http")) {
+                    finalContent = urlMatch[1];
+                    break;
+                }
+             }
+             if (content.startsWith("data:image")) {
+                finalContent = content;
+                break;
+             }
+          }
+        }
+      }
+
+      if (finalContent) return finalContent;
+      
+      // Debug info for failure
+      const firstContent = data.choices?.[0]?.message?.content;
+      console.warn("Failed to find image in response. Model output:", firstContent);
+      
+      throw new Error("No image returned for edit request. The model might have output text instead: " + (firstContent?.substring(0, 100) || "Empty response"));
+
+    } catch (error) {
+        console.error("OpenRouter editImage error:", error);
+        throw new Error(`Failed to edit image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 }

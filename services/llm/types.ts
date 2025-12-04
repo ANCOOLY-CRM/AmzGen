@@ -75,4 +75,13 @@ export interface ILLMService {
    * @returns 推荐的场景描述列表
    */
   recommendScenarios(imageBase64: string): Promise<string[]>;
+
+  /**
+   * 编辑图像 (Inpainting)
+   * @param imageBase64 原图
+   * @param maskBase64 蒙版图 (黑底白字)
+   * @param prompt 编辑提示词
+   * @returns 编辑后的图片 URL
+   */
+  editImage(imageBase64: string, maskBase64: string, prompt: string): Promise<string>;
 }

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ResultCard } from './components/ResultCard';
+import { ImageEditorModal } from './components/ImageEditorModal';
 import { ModelSelector } from './components/ModelSelector';
 import { LLMProvider, ScenarioPreset, ProcessingState, GeneratedImage, GlobalPromptSettings } from './types';
 import { LLMServiceFactory, expandPrompt, generateProductScene, recommendScenarios, DEFAULT_SYSTEM_INSTRUCTION, DEFAULT_USER_TEMPLATE, DEFAULT_GENERATION_TEMPLATE } from './services/llm';
@@ -53,6 +54,10 @@ const App: React.FC = () => {
   const [customApiKey, setCustomApiKey] = useState<string>('');
   const [showApiKey, setShowApiKey] = useState(false);
   const [isApiKeySaved, setIsApiKeySaved] = useState(false);
+
+  // Image Editor State
+  const [editingImage, setEditingImage] = useState<GeneratedImage | null>(null);
+  const [isEditorProcessing, setIsEditorProcessing] = useState(false);
 
   // Advanced Prompt Settings
   const [promptSettings, setPromptSettings] = useState<GlobalPromptSettings>({
@@ -272,6 +277,49 @@ const App: React.FC = () => {
     LLMServiceFactory.registerConfig({}); // Reset to use env var if available
   };
 
+  // Editor Handlers
+  const handleEditImage = (image: GeneratedImage) => {
+    setEditingImage(image);
+  };
+
+  const handleEditorGenerate = async (maskBase64: string, prompt: string) => {
+    if (!editingImage) return;
+    
+    setIsEditorProcessing(true);
+    try {
+        console.log('Generating edit with:', {
+            originalImage: editingImage.url,
+            mask: maskBase64.substring(0, 50) + '...',
+            prompt
+        });
+        
+        // Call actual API via Factory
+        const editedImageUrl = await LLMServiceFactory.getService(LLMProvider.GEMINI_3_PRO_IMAGE_PREVIEW).editImage(
+            editingImage.url,
+            maskBase64,
+            prompt
+        );
+        
+        // Add the result to generatedImages
+        const newImage: GeneratedImage = {
+            id: Date.now().toString() + Math.random().toString().slice(2, 8),
+            url: editedImageUrl,
+            prompt: `[Edit] ${prompt}`,
+            vibe: `${editingImage.vibe} (Edited)`,
+            timestamp: Date.now()
+        };
+        
+        setGeneratedImages(prev => [newImage, ...prev]);
+        setEditingImage(null); // Close modal on success
+        
+    } catch (error) {
+        console.error("Editor error:", error);
+        alert(`Failed to process edit request: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+        setIsEditorProcessing(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
@@ -479,6 +527,7 @@ const App: React.FC = () => {
                             key={img.id} 
                             image={img} 
                             onDownload={handleDownload}
+                            onZoom={handleEditImage}
                          />
                        ))}
                      </div>
@@ -708,6 +757,16 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
+
+      {editingImage && (
+        <ImageEditorModal
+          isOpen={!!editingImage}
+          onClose={() => setEditingImage(null)}
+          imageUrl={editingImage.url}
+          onGenerate={handleEditorGenerate}
+          isProcessing={isEditorProcessing}
+        />
+      )}
     </div>
   );
 };
